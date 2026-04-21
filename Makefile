@@ -8,7 +8,7 @@ all: html post-build
 
 deps:
 	cd $(GEN_DIR) && stack setup && stack build
-	echo '{"type":"commonjs"}' > $(GEN_DIR)/package.json
+	printf '{\n  "type": "commonjs",\n  "overrides": { "yargs": "12.0.5" }\n}\n' > $(GEN_DIR)/package.json
 	cd $(GEN_DIR) && npm install mathjax-node mathjax-node-cli split
 	npm install
 

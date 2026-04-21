@@ -61,15 +61,26 @@ jobs:
         uses: actions/cache@v4
         with:
           path: vendor/cxxdraft-htmlgen/node_modules
-          key: gen-npm-v2-${{ runner.os }}-mathjax-node-cli-split
+          key: gen-npm-v3-${{ runner.os }}-mathjax-node-cli-yargs12-split
 
       - name: Install MathJax toolchain for cxxdraft-htmlgen
         working-directory: vendor/cxxdraft-htmlgen
         run: |
-          echo '{"type":"commonjs"}' > package.json
+          cat > package.json <<'JSON'
+          {
+            "type": "commonjs",
+            "overrides": {
+              "yargs": "12.0.5"
+            }
+          }
+          JSON
           if [ ! -x node_modules/.bin/tex2html ] || [ ! -d node_modules/mathjax-node ]; then
+            rm -rf node_modules
             npm install --no-audit --no-fund --silent mathjax-node mathjax-node-cli split
           fi
+          node -e "require('yargs/package.json')" && \
+            node -e "console.log('yargs', require('yargs/package.json').version)"
+          node_modules/.bin/tex2html --inline '1' >/dev/null 2>&1 && echo "tex2html OK" || echo "tex2html smoke test non-zero"
 
       - name: Generate HTML (InSubdir)
         working-directory: vendor/cxxdraft-htmlgen
