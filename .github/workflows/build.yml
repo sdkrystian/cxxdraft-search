@@ -1,0 +1,117 @@
+name: Build and deploy
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
+
+      - name: System deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y graphviz libtinfo5 libgmp10 zlib1g-dev
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - uses: haskell-actions/setup@v2
+        id: setup-haskell
+        with:
+          enable-stack: true
+          stack-version: "latest"
+          stack-no-global: true
+
+      - name: Cache stack
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.stack
+            vendor/cxxdraft-htmlgen/.stack-work
+          key: stack-${{ runner.os }}-${{ hashFiles('vendor/cxxdraft-htmlgen/stack.yaml', 'vendor/cxxdraft-htmlgen/cxxdraft-htmlgen.cabal') }}
+          restore-keys: |
+            stack-${{ runner.os }}-
+
+      - name: Build cxxdraft-htmlgen
+        working-directory: vendor/cxxdraft-htmlgen
+        run: |
+          stack --no-terminal setup
+          stack --no-terminal build
+
+      - name: Cache npm (cxxdraft-htmlgen)
+        uses: actions/cache@v4
+        with:
+          path: vendor/cxxdraft-htmlgen/node_modules
+          key: gen-npm-${{ runner.os }}-mathjax-node-split
+
+      - name: Install MathJax + split
+        working-directory: vendor/cxxdraft-htmlgen
+        run: |
+          if [ ! -d node_modules/mathjax-node ]; then
+            npm install --no-audit --no-fund --silent mathjax-node split
+          fi
+
+      - name: Generate HTML (InSubdir)
+        working-directory: vendor/cxxdraft-htmlgen
+        run: |
+          rm -rf 14882
+          stack --no-terminal exec cxxdraft-htmlgen -- ../draft InSubdir 2>&1 | tail -80
+
+      - name: Stage to dist/
+        run: |
+          rm -rf dist
+          mkdir -p dist
+          cp -a vendor/cxxdraft-htmlgen/14882/. dist/
+          du -sh dist
+          find dist -maxdepth 1 -type f | head -20
+
+      - name: Install build deps
+        run: npm ci --no-audit --no-fund
+
+      - name: Copy search assets
+        run: cp web/search.css web/search.js dist/
+
+      - name: Inject search UI
+        run: node tools/inject.mjs dist
+
+      - name: Section index
+        run: node tools/section-index.mjs dist
+
+      - name: Pagefind index
+        run: npx --yes pagefind --site dist
+
+      - name: Add no-jekyll marker
+        run: touch dist/.nojekyll
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

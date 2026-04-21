@@ -1,0 +1,9 @@
+node_modules/
+dist/
+vendor/cxxdraft-htmlgen/14882/
+vendor/cxxdraft-htmlgen/.stack-work/
+vendor/cxxdraft-htmlgen/node_modules/
+vendor/cxxdraft-htmlgen/package-lock.json
+.cache/
+.DS_Store
+*.log

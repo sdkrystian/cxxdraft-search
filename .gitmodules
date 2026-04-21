@@ -1,0 +1,7 @@
+[submodule "vendor/cxxdraft-htmlgen"]
+	path = vendor/cxxdraft-htmlgen
+	url = https://github.com/Eelis/cxxdraft-htmlgen.git
+[submodule "vendor/draft"]
+	path = vendor/draft
+	url = https://github.com/Eelis/draft.git
+	branch = cxxdraft-htmlgen-fixes

@@ -1,0 +1,20 @@
+{
+  "name": "cxxdraft-search",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Static clone of eel.is/c++draft with Pagefind keyword search and BYOK OpenRouter semantic search",
+  "type": "module",
+  "scripts": {
+    "inject": "node tools/inject.mjs dist",
+    "section-index": "node tools/section-index.mjs dist",
+    "pagefind": "pagefind --site dist",
+    "post-build": "npm run inject && npm run section-index && npm run pagefind"
+  },
+  "devDependencies": {
+    "cheerio": "^1.0.0",
+    "pagefind": "^1.5.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
