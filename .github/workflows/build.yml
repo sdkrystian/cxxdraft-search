@@ -103,7 +103,7 @@ jobs:
           echo "HTML files in dist: $(find dist -name '*.html' | wc -l)"
 
       - name: Install build deps
-        run: npm ci --no-audit --no-fund
+        run: npm install --no-audit --no-fund --no-save
 
       - name: Copy search assets
         run: cp web/search.css web/search.js dist/
