@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "description": "Static clone of eel.is/c++draft with Pagefind keyword search and BYOK OpenRouter semantic search",
-  "type": "module",
   "scripts": {
     "inject": "node tools/inject.mjs dist",
     "section-index": "node tools/section-index.mjs dist",

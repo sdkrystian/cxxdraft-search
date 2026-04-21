@@ -8,12 +8,13 @@ all: html post-build
 
 deps:
 	cd $(GEN_DIR) && stack setup && stack build
-	cd $(GEN_DIR) && npm install mathjax-node split
+	echo '{"type":"commonjs"}' > $(GEN_DIR)/package.json
+	cd $(GEN_DIR) && npm install mathjax-node mathjax-node-cli split
 	npm install
 
 html:
 	rm -rf $(GEN_DIR)/14882
-	cd $(GEN_DIR) && stack exec cxxdraft-htmlgen -- $(DRAFT_DIR) InSubdir
+	cd $(GEN_DIR) && PATH="$$PWD/node_modules/.bin:$$PATH" stack exec cxxdraft-htmlgen -- $(DRAFT_DIR) InSubdir
 	rm -rf $(DIST)
 	mkdir -p $(DIST)
 	cp -a $(GEN_DIR)/14882/. $(DIST)/
